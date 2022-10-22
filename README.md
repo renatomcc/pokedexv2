@@ -7,7 +7,8 @@ You can check the project [here](https://pokedex-renatomcc.netlify.app)
 
 ## Features
 * All Pokemons with their Numbers, Names, Images and Types
-* 'More Info' button so you can check a Modal you a lot more info of the pokemon, such as the Height, Weight, Gender Rate, Pokedex Entry, Abilities, Stats, Habitat, Shape, Category, Evolution Chain and if your pokemon has a Alolan, Galar, Mega or Gmax form, you can see that too, with normal and Shiny Sprite.
+* 'More Info' button so you can check a Modal you a lot more info of the pokemon, such as the Height, Weight, Gender Rate, Pokedex Entry, Abilities, Stats, Habitat, Shape, Category and Evolution Chain
+* Alolan, Galar, Mega or Gmax form, you can see that too, with normal and Shiny Sprite.
 * Choose your **favorite** pokemons
 * **Filter** pokemons by Number, Name, Types, Category, Habitat, Shape or your Favorites
 * **Search** pokemons by their names
