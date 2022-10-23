@@ -237,7 +237,7 @@ function App() {
         //CREATE EACH POKEMON AND GET THE EASY TO OBTAIN INFOS FIRST (THE REST WILL NEED MORE FETCH TO GET)
         let pokemon: Pokemon = {
           id: item.id,
-          name: item.name[0].toUpperCase() + item.name.slice(1),
+          name: item.name,
           img: item.sprites.other.home['front_default'],
           imgShiny: item.sprites.other.home['front_shiny'],
           types: item.types,
@@ -259,7 +259,7 @@ function App() {
               description: null,
             }
           ],
-          stats: item.stats,
+          stats: [],
           megaStats: [],
           alolaStats: [],
           galarStats: [],
@@ -284,7 +284,7 @@ function App() {
               name: '',
               image: '',
             }],
-          shape: item.shape,
+          shape: '',
           mega: null,
           megaShiny: null,
           alola: null,
@@ -294,20 +294,6 @@ function App() {
           gmax: null,
           gmaxShiny: null,
         }
-
-
-        //GET THE HEIGHT AND WEIGHT
-        pokemon.height = ((Number(item.height + '0') / 100 + 'm') + ' / ' + (((Number(item.height + '0') / 100) * 3.2808).toFixed(2).replace('.', "'") + "''"));
-        pokemon.weight = (Number(item.weight + '0') / 100 + 'kg' + ' / ' + (((Number(item.weight + '0') / 100) * 2.20462262185).toFixed(2)) + 'lbs').replace('.', ',')
-
-        //GET THE ABILITIES NAMES AND DESCRIPTIONS
-        item.abilities.map(async (ability: any, i: number) => {
-          pokemon.abilities[i].name = ability.ability.name[0].toUpperCase() + ability.ability.name.slice(1);
-          await fetch(`${ability.ability.url}`).then(res => { return res.json() }).
-            then(data => {
-              pokemon.abilities[i].description = data.flavor_text_entries.filter((entry: any) => entry.language.name == 'en')[0].flavor_text[0].toUpperCase() + data.flavor_text_entries.filter((entry: any) => entry.language.name == 'en')[0].flavor_text.slice(1)
-            })
-        })
 
         //GET THE POKEDEX ENTRY, THE TITLE, THE HABITAT, THE GENDER RATE, THE SHAPE, THE CATEGORY (BABY, MYTHICAL OR LEGENDARY) AND THE EVOLUTION CHAIN OF THE POKEMON
         fetch(`${item.species.url}`).then(res => { return res.json() }).then(data => {
@@ -435,7 +421,7 @@ function App() {
         <StyledColumn xs={12} sm={8} md={8} lg={8} xl={8}>
           <Image
             radius="md"
-            src="https://archives.bulbagarden.net/media/upload/4/4b/Pokédex_logo.png"
+            src="https://user-images.githubusercontent.com/29473781/180619084-a56960ab-7efa-4e34-9d33-4e3e581d62ff.png"
             alt="Pokedex Logo"
             width={300}
             height={100}
