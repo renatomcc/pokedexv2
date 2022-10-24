@@ -138,10 +138,9 @@ function App() {
   const [searchPoke, setSearchPoke] = useState('');
   const [darkTheme, setDarkTheme] = useState(false)
   const [pokesPerPage, setPokesPerPage] = useState(35);
-  const slicedDex: Pokemon[] = filteredDex.slice(0, pokesPerPage);
-  var search: Pokemon[] = searchPoke.length > 0 ? slicedDex.filter(poke => poke.name.toLocaleLowerCase().includes(searchPoke.toLowerCase())) : slicedDex;
+  var search: Pokemon[] = searchPoke.length > 0 ? filteredDex.filter(poke => poke.name.toLocaleLowerCase().includes(searchPoke.toLowerCase())).slice(0, pokesPerPage) : filteredDex.slice(0, pokesPerPage);
   const [scroll, scrollTo] = useWindowScroll();
-
+  const [currentPokes, setCurrentPokes] = useState(35)
 
   function handleSelect(e: string | null) {
     setSelect(e)
@@ -165,6 +164,7 @@ function App() {
   }
 
   function handleFilter(e: string | null) {
+    setPokesPerPage(35)
     setOption(e)
     switch (select) {
       case 'id':
@@ -172,6 +172,7 @@ function App() {
           setFilteredDex(pokemons.sort(function (a, b) {
             return a.id - b.id;
           }))
+          setCurrentPokes(filteredDex.length)
         }
         if (e == 'name') {
           setFilteredDex([...pokemons].sort((a, b) =>
@@ -182,6 +183,8 @@ function App() {
       case 'type':
         if (e == 'all') setFilteredDex(pokemons)
         else setFilteredDex(pokemons.filter(poke => poke.types[0].type.name == e || (poke.types[1] != null && poke.types[1].type.name == e)))
+        setCurrentPokes(filteredDex.length)
+        console.log(currentPokes)
         break;
       case 'category':
         setFilteredDex(pokemons.filter(poke => poke.category == e))
@@ -198,6 +201,7 @@ function App() {
   }
 
   function handleFavorite(e: boolean) {
+    setPokesPerPage(35)
     if (e) {
       if (option) {
         handleFilter(option);
@@ -215,7 +219,7 @@ function App() {
 
   async function fetchData() {
     Promise.all(
-      await axios.get('https://pokeapi.co/api/v2/pokemon/?limit=800')
+      await axios.get('https://pokeapi.co/api/v2/pokemon/?limit=858')
         .then((data: any) => {
           return data.data.results
         })
@@ -241,59 +245,18 @@ function App() {
           img: item.sprites.other.home['front_default'],
           imgShiny: item.sprites.other.home['front_shiny'],
           types: item.types,
-          alolaTypes: [],
-          galarTypes: [],
-          height: '',
-          weight: '',
-          abilities: [
-            {
-              name: '',
-              description: '',
-            },
-            {
-              name: null,
-              description: null,
-            },
-            {
-              name: null,
-              description: null,
-            }
-          ],
-          stats: [],
-          megaStats: [],
-          alolaStats: [],
-          galarStats: [],
-          gmaxStats: [],
-          entry: '',
-          title: '',
           habitat: '',
-          gender_rate_male: '',
-          gender_rate_female: '',
-          genderless: false,
           category: '',
-          evolutionChain: [
-            {
-              name: '',
-              image: '',
-            },
-            {
-              name: '',
-              image: '',
-            },
-            {
-              name: '',
-              image: '',
-            }],
           shape: '',
-          mega: null,
-          megaShiny: null,
-          alola: null,
-          alolaShiny: null,
-          galar: null,
-          galarShiny: null,
-          gmax: null,
-          gmaxShiny: null,
         }
+        axios.get(`${item.species.url}`).then(res => {
+          if (res.data.habitat) pokemon.habitat = res.data.habitat.name[0].toUpperCase() + res.data.habitat.name.slice(1)
+          if (res.data.shape) pokemon.shape = res.data.shape.name[0].toUpperCase() + res.data.shape.name.slice(1)
+          if (res.data.is_baby) pokemon.category = 'Baby'
+          if (res.data.is_mythical) pokemon.category = 'Mythical'
+          if (res.data.is_legendary) pokemon.category = 'Legendary'
+          if (!res.data.is_baby && !res.data.is_mythical && !res.data.is_legendary) pokemon.category = 'Normal'
+        })
         pokedex.push(pokemon)
       })
     }).then(res => {
@@ -459,7 +422,7 @@ function App() {
                 </>
               }
             </StyledGrid >
-            {slicedDex.length != filteredDex.length ?
+            {pokesPerPage <= filteredDex.length ?
               <Button color="pink" radius="md" size="md" leftIcon={<MdCatchingPokemon size={24} />} onClick={() => loadMore()} >
                 Catch more!
               </Button>
@@ -477,33 +440,9 @@ export interface Pokemon {
   img: string,
   imgShiny: string,
   types: any[],
-  alolaTypes: any[],
-  galarTypes: any[],
-  height: string,
-  weight: string,
-  abilities: any[],
-  stats: any[],
-  megaStats: any[],
-  alolaStats: any[],
-  galarStats: any[],
-  gmaxStats: any[],
-  entry: string,
-  title: string,
   habitat: string,
-  gender_rate_male: string,
-  gender_rate_female: string,
-  genderless: boolean,
   category: string,
-  evolutionChain: any[],
   shape: string,
-  mega: string | null,
-  megaShiny: string | null,
-  alola: string | null,
-  alolaShiny: string | null,
-  galar: string | null,
-  galarShiny: string | null,
-  gmax: string | null,
-  gmaxShiny: string | null,
 }
 
 export default App

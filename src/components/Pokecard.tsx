@@ -6,6 +6,7 @@ import { FaInfoCircle } from 'react-icons/fa'
 import { BsHeart, BsFillHeartFill } from 'react-icons/bs'
 import { setCardBGColor, setTextColor, setTypeColor } from '../utils/setColors'
 import PokeModal from './Modal';
+import { LazyLoadImage } from 'react-lazy-load-image-component';
 
 var favorites: number[] = []
 
@@ -38,15 +39,17 @@ export default function Pokecard(props: IPokemonType) {
                     {favorites.includes(props.props.id) ? <BsFillHeartFill fill='red' onClick={() => { setFav(props.props.id) }} /> : <BsHeart fill='white' onClick={() => { setFav(props.props.id) }} />}
                 </StyledGroup>
                 <StyledGroupCenter>
-                    <Image
+                    <LazyLoadImage
+                        alt={props.props.name}
                         src={props.props.img}
                         width={160}
                         height={160}
-                        alt={props.props.name}
+                        delayMethod='debounce'
+                        effect="blur"
                     />
                 </StyledGroupCenter>
                 <StyledGroupCenter>
-                    <StyledText> {props.props.name} </StyledText>
+                    <StyledText> {props.props.name[0].toUpperCase() + props.props.name.slice(1)} </StyledText>
                 </StyledGroupCenter>
                 <StyledGroupEvenly>
                     <Badge sx={{ padding: 4 }} variant="filled" radius="xs" style={{ backgroundColor: `${setTypeColor(props.props.types[0].type.name)}`, color: `${setTextColor(props.props.types[0].type.name)}` }}>{props.props.types[0].type.name} </Badge>

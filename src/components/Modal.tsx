@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import styled from '@emotion/styled';
-import { Card, Image, Text, Badge, Button, Group, Grid, createPolymorphicComponent, Modal, ButtonProps, BadgeProps } from '@mantine/core';
-import { Pokemon } from '../App';
+import { Card, Image, Text, Badge, Button, Group, Grid, createPolymorphicComponent, Modal, ButtonProps, BadgeProps, Loader, Paper } from '@mantine/core';
 import { BsArrowDown } from 'react-icons/bs'
 import { HiOutlineStar, HiStar } from 'react-icons/hi'
 import { TbGenderMale, TbGenderFemale, TbBeach, TbBeachOff, TbMountain } from 'react-icons/tb'
@@ -11,6 +10,9 @@ import { GiTennisBall } from 'react-icons/gi'
 import { CiMountain1 } from 'react-icons/ci'
 import { GiRollingEnergy } from 'react-icons/gi'
 import { setStatColor, setTextColor, setTypeColor } from '../utils/setColors'
+import React from 'react';
+import { LazyLoadImage, trackWindowScroll } from 'react-lazy-load-image-component'
+import 'react-lazy-load-image-component/src/effects/blur.css';
 import axios from 'axios';
 
 var favorites: number[] = []
@@ -28,8 +30,8 @@ export default function PokeModal(props: IName) {
     const [alola, setAlola] = useState(false)
     const [gmax, setGmax] = useState(false)
     const [fetching, setFetching] = useState(true);
-    let poke: Pokemon = {
-        id: 5,
+    let poke: Poke = {
+        id: 0,
         name: '',
         img: '',
         imgShiny: '',
@@ -56,7 +58,6 @@ export default function PokeModal(props: IName) {
         megaStats: [],
         alolaStats: [],
         galarStats: [],
-        gmaxStats: [],
         entry: '',
         title: '',
         habitat: '',
@@ -78,19 +79,24 @@ export default function PokeModal(props: IName) {
                 image: '',
             }],
         shape: '',
-        mega: null,
-        megaShiny: null,
-        alola: null,
-        alolaShiny: null,
-        galar: null,
-        galarShiny: null,
-        gmax: null,
-        gmaxShiny: null,
+        mega: undefined,
+        megaShiny: undefined,
+        alola: undefined,
+        alolaShiny: undefined,
+        galar: undefined,
+        galarShiny: undefined,
+        gmax: undefined,
+        gmaxShiny: undefined,
     }
     const [pokemon, setPokemon] = useState<Poke>(poke);
 
-    const fetchInfos = async () => {
-        await axios.get(`https://pokeapi.co/api/v2/pokemon/${props.name}`).then(async res => {
+    const fetchInfos = async (name: string) => {
+        setFetching(true)
+        setAlola(false)
+        setMega(false)
+        setGalar(false)
+        setGmax(false)
+        await axios.get(`https://pokeapi.co/api/v2/pokemon/${name}`).then(async res => {
             poke.id = res.data.id;
             poke.name = res.data.name[0].toUpperCase() + res.data.name.slice(1);
             poke.img = res.data.sprites.other.home.front_default;
@@ -99,7 +105,6 @@ export default function PokeModal(props: IName) {
             poke.height = ((Number(res.data.height + '0') / 100 + 'm') + ' / ' + (((Number(res.data.height + '0') / 100) * 3.2808).toFixed(2).replace('.', "'") + "''"));
             poke.weight = (Number(res.data.weight + '0') / 100 + 'kg' + ' / ' + (((Number(res.data.weight + '0') / 100) * 2.20462262185).toFixed(2)) + 'lbs').replace('.', ',')
             poke.stats = res.data.stats;
-            console.log(poke)
 
             res.data.abilities.map(async (ability: any, i: number) => {
                 poke.abilities[i].name = ability.ability.name[0].toUpperCase() + ability.ability.name.slice(1);
@@ -129,66 +134,66 @@ export default function PokeModal(props: IName) {
                 if (res.data.is_legendary) poke.category = 'Legendary'
                 if (!res.data.is_baby && !res.data.is_mythical && !res.data.is_legendary) poke.category = 'Normal'
 
-                await axios.get(`${res.data.evolution_chain.url}`).then(async res => {
-                    poke.evolutionChain[0].name = res.data.chain.species.name[0].toUpperCase() + res.data.chain.species.name.slice(1)
-                    await axios.get(`${res.data.chain.species.url}`).then(res => {
-                        axios.get(`https://pokeapi.co/api/v2/pokemon/${res.data.id}`).then(res => {
-                            poke.evolutionChain[0].image = res.data.sprites.other.home.front_default
-                        })
-                    })
-
-                    if (res.data.chain.evolves_to[0]?.species.name != null) {
-                        poke.evolutionChain[1].name = res.data.chain.evolves_to[0].species.name[0].toUpperCase() + res.data.chain.species.name.slice(1)
-                        axios.get(`${res.data.chain.evolves_to[0].species.url}`).then(res => {
-                            axios.get(`https://pokeapi.co/api/v2/pokemon/${res.data.id}`).then(res => {
-                                poke.evolutionChain[1].image = res.data.sprites.other.home.front_default
-                            })
-                        })
-                    }
-
-                    if (res.data.chain.evolves_to[0]?.evolves_to[0]?.species.name != null) {
-                        poke.evolutionChain[2].name = res.data.chain.evolves_to[0].evolves_to[0].species.name[0].toUpperCase() + res.data.chain.species.name.slice(1)
-                        axios.get(`${res.data.chain.evolves_to[0].evolves_to[0].species.url}`).then(res => {
-                            axios.get(`https://pokeapi.co/api/v2/pokemon/${res.data.id}`).then(res => {
-                                poke.evolutionChain[2].image = res.data.sprites.other.home.front_default
-                            })
-                        })
-                    }
-                })
-
                 if (res.data.varieties[1]) {
-                    res.data.varieties.map((data: any) => {
-                        if (data.poke.name.includes('mega')) {
-                            axios.get(`${data.poke.url}`).then(res => {
+                    res.data.varieties.map(async (data: any) => {
+                        if (data.pokemon.name.includes('mega')) {
+                            await axios.get(`${data.pokemon.url}`).then(res => {
                                 poke.mega = res.data.sprites.other.home.front_default
                                 poke.megaShiny = res.data.sprites.other.home.front_shiny
                                 poke.megaStats = res.data.stats
                             })
                         }
-                        if (data.poke.name.includes('alola')) {
-                            axios.get(`${data.poke.url}`).then(res => {
+                        if (data.pokemon.name.includes('alola')) {
+                            await axios.get(`${data.pokemon.url}`).then(res => {
                                 poke.alola = res.data.sprites.other.home.front_default
                                 poke.alolaShiny = res.data.sprites.other.home.front_shiny
                                 poke.alolaStats = res.data.stats
                                 poke.alolaTypes = res.data.types
                             })
                         }
-                        if (data.poke.name.includes('galar')) {
-                            axios.get(`${data.poke.url}`).then(res => {
+                        if (data.pokemon.name.includes('galar')) {
+                            await axios.get(`${data.pokemon.url}`).then(res => {
                                 poke.galar = res.data.sprites.other.home.front_default
                                 poke.galarShiny = res.data.sprites.other.home.front_shiny
                                 poke.galarStats = res.data.stats
                                 poke.galarTypes = res.data.types
                             })
                         }
-                        if (data.poke.name.includes('gmax')) {
-                            axios.get(`${data.poke.url}`).then(res => {
+                        if (data.pokemon.name.includes('gmax')) {
+                            await axios.get(`${data.pokemon.url}`).then(res => {
                                 poke.gmax = res.data.sprites.other.home.front_default
                                 poke.gmaxShiny = res.data.sprites.other.home.front_shiny
                             })
                         }
                     })
                 }
+
+                await axios.get(`${res.data.evolution_chain.url}`).then(async res => {
+                    poke.evolutionChain[0].name = res.data.chain.species.name[0].toUpperCase() + res.data.chain.species.name.slice(1)
+                    await axios.get(`${res.data.chain.species.url}`).then(async res => {
+                        await axios.get(`https://pokeapi.co/api/v2/pokemon/${res.data.id}`).then(res => {
+                            poke.evolutionChain[0].image = res.data.sprites.other.home.front_default
+                        })
+                    })
+
+                    if (res.data.chain.evolves_to[0]?.species.name != null) {
+                        poke.evolutionChain[1].name = res.data.chain.evolves_to[0].species.name[0].toUpperCase() + res.data.chain.evolves_to[0].species.name.slice(1)
+                        await axios.get(`${res.data.chain.evolves_to[0].species.url}`).then(async res => {
+                            await axios.get(`https://pokeapi.co/api/v2/pokemon/${res.data.id}`).then(res => {
+                                poke.evolutionChain[1].image = res.data.sprites.other.home.front_default
+                            })
+                        })
+                    }
+
+                    if (res.data.chain.evolves_to[0]?.evolves_to[0]?.species.name != null) {
+                        poke.evolutionChain[2].name = res.data.chain.evolves_to[0].evolves_to[0].species.name[0].toUpperCase() + res.data.chain.evolves_to[0].evolves_to[0].species.name.slice(1)
+                        await axios.get(`${res.data.chain.evolves_to[0].evolves_to[0].species.url}`).then(async res => {
+                            await axios.get(`https://pokeapi.co/api/v2/pokemon/${res.data.id}`).then(res => {
+                                poke.evolutionChain[2].image = res.data.sprites.other.home.front_default
+                            })
+                        })
+                    }
+                })
             })
         }).then(res => {
             setPokemon(poke)
@@ -198,7 +203,7 @@ export default function PokeModal(props: IName) {
     }
 
     useEffect(() => {
-        fetchInfos();
+        fetchInfos(props.name);
     }, [])
 
     return (
@@ -217,11 +222,12 @@ export default function PokeModal(props: IName) {
                                         <Text weight={500} size='lg'>Shiny</Text>
                                     </StyledButton>
                                 </Card.Section>
-                                <Image
-                                    src={mega ? shiny ? pokemon.megaShiny : pokemon.mega : galar ? shiny ? pokemon.galarShiny : pokemon.galar : alola ? shiny ? pokemon.alolaShiny : pokemon.alola : gmax ? shiny ? pokemon.gmaxShiny : pokemon.gmax : shiny ? pokemon.imgShiny : pokemon.img}
-                                    fit='scale-down'
+                                <LazyLoadImage
                                     alt={pokemon.name}
-                                    title={pokemon.name}
+                                    src={mega ? shiny ? pokemon.megaShiny : pokemon.mega : galar ? shiny ? pokemon.galarShiny : pokemon.galar : alola ? shiny ? pokemon.alolaShiny : pokemon.alola : gmax ? shiny ? pokemon.gmaxShiny : pokemon.gmax : shiny ? pokemon.imgShiny : pokemon.img}
+                                    width='100%'
+                                    delayMethod={'debounce'}
+                                    effect="blur"
                                 />
                                 {pokemon.mega ?
                                     <Card.Section>
@@ -265,11 +271,11 @@ export default function PokeModal(props: IName) {
                                     <StyledGroupEvenly position="apart" mt="md" mb="xs">
                                         <Badge variant="filled" radius="xs" style={{ backgroundColor: `${setTypeColor(pokemon.galarTypes[0].type.name)}`, color: `${setTextColor(pokemon.galarTypes[0].type.name)}`, padding: '20px 30px' }}>{pokemon.galarTypes[0].type.name} </Badge>
                                         {pokemon.galarTypes[1] ? <Badge variant="filled" radius="xs" style={{ backgroundColor: `${setTypeColor(pokemon.galarTypes[1].type.name)}`, color: `${setTextColor(pokemon.galarTypes[1].type.name)}`, padding: '20px 30px' }}>{pokemon.galarTypes[1].type.name} </Badge> : null}
-                                    </StyledGroupEvenly> : null
-                                // <StyledGroupEvenly position="apart" mt="md" mb="xs">
-                                //     <Badge variant="filled" radius="xs" style={{ backgroundColor: `${setTypeColor(pokemon.types[0].type.name)}`, color: `${setTextColor(pokemon.types[0].type.name)}`, padding: '20px 30px' }}>{pokemon.types[0].type.name} </Badge>
-                                //     {pokemon.types[1] ? <Badge variant="filled" radius="xs" style={{ backgroundColor: `${setTypeColor(pokemon.types[1].type.name)}`, color: `${setTextColor(pokemon.types[1].type.name)}`, padding: '20px 30px' }}>{pokemon.types[1].type.name} </Badge> : null}
-                                // </StyledGroupEvenly>
+                                    </StyledGroupEvenly> :
+                                    <StyledGroupEvenly position="apart" mt="md" mb="xs">
+                                        <Badge variant="filled" radius="xs" style={{ backgroundColor: `${setTypeColor(pokemon.types[0].type.name)}`, color: `${setTextColor(pokemon.types[0].type.name)}`, padding: '20px 30px' }}>{pokemon.types[0].type.name} </Badge>
+                                        {pokemon.types[1] ? <Badge variant="filled" radius="xs" style={{ backgroundColor: `${setTypeColor(pokemon.types[1].type.name)}`, color: `${setTextColor(pokemon.types[1].type.name)}`, padding: '20px 30px' }}>{pokemon.types[1].type.name} </Badge> : null}
+                                    </StyledGroupEvenly>
                             }
                             <StyledPaper>
                                 <Text weight={500}> Height: </Text>
@@ -308,9 +314,9 @@ export default function PokeModal(props: IName) {
                                 {pokemon.abilities[2]?.name != null ? <Button variant="filled" color="dark" compact radius="sm" size='md' onClick={() => { setDescription(`${pokemon.abilities[2].description}`), setDescriptionModal(true) }}> {pokemon.abilities[2].name} </Button> : null}
                             </div>
                         </Card>
-                        <Card shadow="sm" p="md" radius="md" style={{ background: 'rgba(0,0,0,0.4)', marginTop: '10px', color: 'white' }}>
+                        <Card shadow="sm" p="md" radius="md" style={{ background: 'rgba(0,0,0,0.2)', marginTop: '10px', color: 'white' }}>
                             <StyledTextTitle>Stats:</StyledTextTitle>
-                            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', marginTop: '15px', backgroundColor: 'rgba(0,0,0,0.2)' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', marginTop: '15px', backgroundColor: 'rgba(0,0,0,0.4)' }}>
                                 {mega ? pokemon.megaStats.map(stat => (
                                     <StyledStatPaper key={stat.index} style={{ background: `linear-gradient(to right, ${setStatColor(stat.stat.name)} ${stat.base_stat / 1.75}%, transparent 1%) no-repeat` }}>
                                         <Text weight={500}> {stat.stat.name.toUpperCase()}</Text>
@@ -360,12 +366,14 @@ export default function PokeModal(props: IName) {
 
                     {/* RIGHT CARD */}
                     <SyledColumn xs={12} sm={12} md={12} lg={3}>
-                        <StyledPaperCircle>
-                            <Image
+                        <StyledPaperCircle onClick={() => { fetchInfos(pokemon.evolutionChain[0].name[0].toLowerCase() + pokemon.evolutionChain[0].name.slice(1)) }}>
+                            <LazyLoadImage
+                                alt={pokemon.name}
                                 src={pokemon.evolutionChain[0].image}
                                 width={150}
                                 height={150}
-                                alt={pokemon.name}
+                                delayMethod='debounce'
+                                effect="blur"
                             />
                             <Text>{pokemon.evolutionChain[0].name} </Text>
                         </StyledPaperCircle>
@@ -373,12 +381,14 @@ export default function PokeModal(props: IName) {
                         {pokemon.evolutionChain[1].name ?
                             <>
                                 <BsArrowDown size={20} />
-                                <StyledPaperCircle>
-                                    <Image
+                                <StyledPaperCircle onClick={() => { fetchInfos(pokemon.evolutionChain[1].name[0].toLowerCase() + pokemon.evolutionChain[1].name.slice(1)) }}>
+                                    <LazyLoadImage
+                                        alt={pokemon.name}
                                         src={pokemon.evolutionChain[1].image}
                                         width={150}
                                         height={150}
-                                        alt={pokemon.name}
+                                        delayMethod='debounce'
+                                        effect="blur"
                                     />
                                     <Text>{pokemon.evolutionChain[1].name} </Text>
                                 </StyledPaperCircle>
@@ -388,12 +398,14 @@ export default function PokeModal(props: IName) {
                         {pokemon.evolutionChain[2].name ?
                             <>
                                 <BsArrowDown size={20} />
-                                <StyledPaperCircle>
-                                    <Image
+                                <StyledPaperCircle onClick={() => { fetchInfos(pokemon.evolutionChain[2].name[0].toLowerCase() + pokemon.evolutionChain[2].name.slice(1)) }}>
+                                    <LazyLoadImage
+                                        alt={pokemon.name}
                                         src={pokemon.evolutionChain[2].image}
                                         width={150}
                                         height={150}
-                                        alt={pokemon.name}
+                                        delayMethod='debounce'
+                                        effect="blur"
                                     />
                                     <Text>{pokemon.evolutionChain[2].name} </Text>
                                 </StyledPaperCircle>
@@ -417,6 +429,12 @@ export default function PokeModal(props: IName) {
                     </Modal>
                 )
             }
+            {fetching && (
+                <StyledPaper>
+                    <Badge color="pink" size="xl" radius="sm" variant="filled">Catching...</Badge>
+                    <Loader color="pink" variant="dots" />
+                </StyledPaper>
+            )}
         </>
     );
 
@@ -513,13 +531,14 @@ const StyledPaperColumn = styled(StyledPaper)`
 
 const StyledStatPaper = styled(StyledPaper)`
     justify-content: space-between;
-    border: 1px solid rgba(0,0,0,0.8)
+    border: 1px solid rgba(0,0,0,0.8);
 `
 
 const StyledPaperCircle = styled(StyledPaperColumn)`
     width: 200px;
     height: 200px;
     border-radius: 50%;
+    cursor: pointer;
 `
 
 const SyledColumn = styled(Grid.Col)`
@@ -575,12 +594,12 @@ interface Poke {
     category: string,
     evolutionChain: any[],
     shape: string,
-    mega: string | null,
-    megaShiny: string | null,
-    alola: string | null,
-    alolaShiny: string | null,
-    galar: string | null,
-    galarShiny: string | null,
-    gmax: string | null,
-    gmaxShiny: string | null,
+    mega: string | undefined,
+    megaShiny: string | undefined,
+    alola: string | undefined,
+    alolaShiny: string | undefined,
+    galar: string | undefined,
+    galarShiny: string | undefined,
+    gmax: string | undefined,
+    gmaxShiny: string | undefined,
 }
