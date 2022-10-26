@@ -140,11 +140,15 @@ function App() {
   const [pokesPerPage, setPokesPerPage] = useState(35);
   var search: Pokemon[] = searchPoke.length > 0 ? filteredDex.filter(poke => poke.name.toLocaleLowerCase().includes(searchPoke.toLowerCase())).slice(0, pokesPerPage) : filteredDex.slice(0, pokesPerPage);
   const [scroll, scrollTo] = useWindowScroll();
-  const [currentPokes, setCurrentPokes] = useState(35)
 
-  function handleSelect(e: string | null) {
-    setSelect(e)
-    switch (e) {
+  function handleSelect(selectOption: string | null) {
+    setSelect(selectOption)
+    setOption('')
+    switch (selectOption) {
+      case 'favorites':
+        setData(noData)
+        setFilteredDex(filteredDex.filter(poke => favorites.includes(poke.id)))
+        break
       case 'id':
         setData(IDNameData);
         break;
@@ -163,58 +167,39 @@ function App() {
     }
   }
 
-  function handleFilter(e: string | null) {
+  async function handleFilter(filterOption: string | null) {
     setPokesPerPage(35)
-    setOption(e)
+    setOption(filterOption)
     switch (select) {
       case 'id':
-        if (e == 'id') {
+        if (filterOption == 'id') {
           setFilteredDex(pokemons.sort(function (a, b) {
             return a.id - b.id;
           }))
-          setCurrentPokes(filteredDex.length)
         }
-        if (e == 'name') {
+        if (filterOption == 'name') {
           setFilteredDex([...pokemons].sort((a, b) =>
             a.name > b.name ? 1 : -1,
           ));
         }
         break;
       case 'type':
-        if (e == 'all') setFilteredDex(pokemons)
-        else setFilteredDex(pokemons.filter(poke => poke.types[0].type.name == e || (poke.types[1] != null && poke.types[1].type.name == e)))
-        setCurrentPokes(filteredDex.length)
-        console.log(currentPokes)
+        if (filterOption == 'all') setFilteredDex(pokemons)
+        else setFilteredDex(pokemons.filter(poke => poke.types[0].type.name == filterOption || (poke.types[1] != null && poke.types[1].type.name == filterOption)))
+        console.log('filtrou por type', filterOption)
         break;
       case 'category':
-        setFilteredDex(pokemons.filter(poke => poke.category == e))
+        setFilteredDex(pokemons.filter(poke => poke.category == filterOption))
         break;
       case 'habitat':
-        if (e == 'all') setFilteredDex(pokemons)
-        else setFilteredDex(pokemons.filter(poke => poke.habitat == e))
+        if (filterOption == 'all') setFilteredDex(pokemons)
+        else setFilteredDex(pokemons.filter(poke => poke.habitat == filterOption))
         break;
       case 'shape':
-        if (e == 'all') setFilteredDex(pokemons)
-        else setFilteredDex(pokemons.filter(poke => poke.shape == e))
+        if (filterOption == 'all') setFilteredDex(pokemons)
+        else setFilteredDex(pokemons.filter(poke => poke.shape == filterOption))
         break;
     }
-  }
-
-  function handleFavorite(e: boolean) {
-    setPokesPerPage(35)
-    if (e) {
-      if (option) {
-        handleFilter(option);
-        setFilteredDex(filteredDex.filter(poke => favorites.includes(poke.id)));
-      }
-      else {
-        setFilteredDex(filteredDex.filter(poke => favorites.includes(poke.id)));
-      }
-    }
-    else {
-      select && option ? handleFilter(option) : setFilteredDex(pokemons)
-    }
-
   }
 
   async function fetchData() {
@@ -345,16 +330,16 @@ function App() {
             <BiUpArrowAlt size={26} />
           </ActionIcon>
         </>
-      )
-      }
+      )}
       <StyledGrid>
         <StyledColumn xs={12} sm={8} md={8} lg={5} xl={5}>
           <StyledGrid>
             <StyledColumn style={{ flexDirection: 'column' }}>
               <StyledBadge color={darkTheme ? 'indigo' : 'dark'} radius='sm' variant={darkTheme ? 'light' : 'filled'} size='lg'>SORT BY</StyledBadge>
               <StyledSelect
-                placeholder="Select Filter"
+                placeholder="Select a Filter"
                 data={[
+                  { value: 'favorites', label: 'Favorites' },
                   { value: 'id', label: 'ID/Name' },
                   { value: 'type', label: 'Type' },
                   { value: 'category', label: 'Category' },
@@ -367,28 +352,20 @@ function App() {
                   width: '80%',
                   backgroundColor: `${darkTheme ? 'none' : '#21314e'}`
                 }}
-
               />
             </StyledColumn>
             <StyledColumn>
               <StyledSelect
-                placeholder="Select Option"
+                placeholder='Select an Option'
                 data={data}
                 size='sm'
                 disabled={data != noData ? false : true}
                 onChange={(e) => { handleFilter(e) }}
                 style={{ width: '80%' }}
+                value={option}
               />
             </StyledColumn>
           </StyledGrid>
-        </StyledColumn>
-        <StyledColumn xs={12} sm={4} md={4} lg={2} xl={2}>
-          <StyledCheckbox icon={BsFillHeartFill}
-            onChange={e => { handleFavorite(e.target.checked) }}
-            size='lg'
-            radius={0}
-          />
-          <StyledBadge color={darkTheme ? 'indigo' : 'dark'} radius={0} variant={darkTheme ? 'light' : 'filled'} size='lg' style={{ padding: '14px 10px' }}>FAVORITES</StyledBadge>
         </StyledColumn>
         <StyledColumn xs={12} sm={6} md={6} lg={5} xl={5} style={{ flexDirection: 'column' }}>
           <StyledBadge color={darkTheme ? 'indigo' : 'dark'} radius='sm' variant={darkTheme ? 'light' : 'filled'} size='lg'>SEARCH POKEMON</StyledBadge>

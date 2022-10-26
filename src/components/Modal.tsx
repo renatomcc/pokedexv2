@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import styled from '@emotion/styled';
-import { Card, Image, Text, Badge, Button, Group, Grid, createPolymorphicComponent, Modal, ButtonProps, BadgeProps, Loader, Paper } from '@mantine/core';
+import { Card, Image, Text, Badge, Button, Group, Grid, createPolymorphicComponent, Modal, ButtonProps, BadgeProps, Loader, Paper, keyframes } from '@mantine/core';
 import { BsArrowDown } from 'react-icons/bs'
 import { HiOutlineStar, HiStar } from 'react-icons/hi'
 import { TbGenderMale, TbGenderFemale, TbBeach, TbBeachOff, TbMountain } from 'react-icons/tb'
@@ -30,6 +30,7 @@ export default function PokeModal(props: IName) {
     const [alola, setAlola] = useState(false)
     const [gmax, setGmax] = useState(false)
     const [fetching, setFetching] = useState(true);
+    const [fetchingVarieties, setFetchingVarieties] = useState(false)
     let poke: Poke = {
         id: 0,
         name: '',
@@ -114,6 +115,43 @@ export default function PokeModal(props: IName) {
             })
 
             await axios.get(`${res.data.species.url}`).then(async res => {
+
+                if (res.data.varieties[1]) {
+                    setFetchingVarieties(true)
+                    res.data.varieties.map(async (data: any) => {
+                        if (data.pokemon.name.includes('mega')) {
+                            await axios.get(`${data.pokemon.url}`).then(res => {
+                                poke.mega = res.data.sprites.other.home.front_default
+                                poke.megaShiny = res.data.sprites.other.home.front_shiny ? res.data.sprites.other.home.front_shiny : 'https://i.ibb.co/YftfZkZ/no-img-available.png'
+                                poke.megaStats = res.data.stats
+                            }).then(res => { setFetchingVarieties(false) })
+                        }
+                        if (data.pokemon.name.includes('alola')) {
+                            await axios.get(`${data.pokemon.url}`).then(async res => {
+                                poke.alola = res.data.sprites.other.home.front_default
+                                poke.alolaShiny = res.data.sprites.other.home.front_shiny ? res.data.sprites.other.home.front_shiny : 'https://i.ibb.co/YftfZkZ/no-img-available.png'
+                                poke.alolaStats = res.data.stats
+                                poke.alolaTypes = res.data.types
+                            }).then(async res => { setFetchingVarieties(false) })
+                        }
+                        if (data.pokemon.name.includes('galar')) {
+                            await axios.get(`${data.pokemon.url}`).then(async res => {
+                                poke.galar = res.data.sprites.other.home.front_default
+                                poke.galarShiny = res.data.sprites.other.home.front_shiny ? res.data.sprites.other.home.front_shiny : 'https://i.ibb.co/YftfZkZ/no-img-available.png'
+                                poke.galarStats = res.data.stats
+                                poke.galarTypes = res.data.types
+                            }).then(async res => { setFetchingVarieties(false) })
+                        }
+                        if (data.pokemon.name.includes('gmax')) {
+                            await axios.get(`${data.pokemon.url}`).then(async res => {
+                                poke.gmax = res.data.sprites.other.home.front_default
+                                poke.gmaxShiny = res.data.sprites.other.home.front_shiny ? res.data.sprites.other.home.front_shiny : 'https://i.ibb.co/YftfZkZ/no-img-available.png'
+                            }).then(async res => { setFetchingVarieties(false) })
+                        }
+                    })
+                }
+
+
                 poke.entry = (res.data.flavor_text_entries.filter((entry: any) => entry.language.name == 'en')[0].flavor_text).replace(/\n|\f/gm, " ");
                 poke.title = res.data.genera[7].genus.replace('\n', " ");
 
@@ -134,39 +172,6 @@ export default function PokeModal(props: IName) {
                 if (res.data.is_legendary) poke.category = 'Legendary'
                 if (!res.data.is_baby && !res.data.is_mythical && !res.data.is_legendary) poke.category = 'Normal'
 
-                if (res.data.varieties[1]) {
-                    res.data.varieties.map(async (data: any) => {
-                        if (data.pokemon.name.includes('mega')) {
-                            await axios.get(`${data.pokemon.url}`).then(res => {
-                                poke.mega = res.data.sprites.other.home.front_default
-                                poke.megaShiny = res.data.sprites.other.home.front_shiny
-                                poke.megaStats = res.data.stats
-                            })
-                        }
-                        if (data.pokemon.name.includes('alola')) {
-                            await axios.get(`${data.pokemon.url}`).then(res => {
-                                poke.alola = res.data.sprites.other.home.front_default
-                                poke.alolaShiny = res.data.sprites.other.home.front_shiny
-                                poke.alolaStats = res.data.stats
-                                poke.alolaTypes = res.data.types
-                            })
-                        }
-                        if (data.pokemon.name.includes('galar')) {
-                            await axios.get(`${data.pokemon.url}`).then(res => {
-                                poke.galar = res.data.sprites.other.home.front_default
-                                poke.galarShiny = res.data.sprites.other.home.front_shiny
-                                poke.galarStats = res.data.stats
-                                poke.galarTypes = res.data.types
-                            })
-                        }
-                        if (data.pokemon.name.includes('gmax')) {
-                            await axios.get(`${data.pokemon.url}`).then(res => {
-                                poke.gmax = res.data.sprites.other.home.front_default
-                                poke.gmaxShiny = res.data.sprites.other.home.front_shiny
-                            })
-                        }
-                    })
-                }
 
                 await axios.get(`${res.data.evolution_chain.url}`).then(async res => {
                     poke.evolutionChain[0].name = res.data.chain.species.name[0].toUpperCase() + res.data.chain.species.name.slice(1)
@@ -208,7 +213,7 @@ export default function PokeModal(props: IName) {
 
     return (
         <>
-            {!fetching && (
+            {!fetching && !fetchingVarieties ? (
                 <StyledGrid>
                     {/* LEFT CARD */}
                     <Grid.Col xs={10} sm={6} md={4} lg={4}>
@@ -413,7 +418,14 @@ export default function PokeModal(props: IName) {
                             : null}
                     </SyledColumn>
                 </StyledGrid>
-            )}
+            ) :
+                (
+                    <StyledPaper>
+                        <Badge color="pink" size="xl" radius="sm" variant="filled">Catching...</Badge>
+                        <Loader color="pink" variant="dots" />
+                    </StyledPaper>
+                )
+            }
             {
                 descriptionModal && (
                     <Modal
@@ -429,12 +441,6 @@ export default function PokeModal(props: IName) {
                     </Modal>
                 )
             }
-            {fetching && (
-                <StyledPaper>
-                    <Badge color="pink" size="xl" radius="sm" variant="filled">Catching...</Badge>
-                    <Loader color="pink" variant="dots" />
-                </StyledPaper>
-            )}
         </>
     );
 
@@ -529,9 +535,20 @@ const StyledPaperColumn = styled(StyledPaper)`
     font-weight: bold;
 `
 
+const appear = keyframes`
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity 1;
+  }
+`;
+
 const StyledStatPaper = styled(StyledPaper)`
     justify-content: space-between;
     border: 1px solid rgba(0,0,0,0.8);
+    animation: ${appear} 1s linear
 `
 
 const StyledPaperCircle = styled(StyledPaperColumn)`

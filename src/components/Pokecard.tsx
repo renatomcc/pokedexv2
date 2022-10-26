@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import styled from '@emotion/styled';
 import { Card, Image, Badge, Button, Group, Grid, createPolymorphicComponent, ButtonProps, BadgeProps, Modal } from '@mantine/core';
 import { Pokemon } from '../App';
