@@ -52,15 +52,6 @@ const StyledInput = styled(TextInput)`
     text-shadow: rgba(0,0,0,0.6);
   }
 `
-const StyledCheckbox = styled(Checkbox)`
-  text-align: center;
-  & .mantine-1prjls9{
-    color: white;
-    font-size: 18px;
-    font-weight: 600;
-    text-shadow: rgba(0,0,0,0.6);
-  }
-`
 const _StyledBadge = styled(Badge)`
     margin: 10px 0px;
 `
@@ -223,7 +214,6 @@ function App() {
       })
     ).then(result => {
       result.map(async item => {
-        //CREATE EACH POKEMON AND GET THE EASY TO OBTAIN INFOS FIRST (THE REST WILL NEED MORE FETCH TO GET)
         let pokemon: Pokemon = {
           id: item.id,
           name: item.name,

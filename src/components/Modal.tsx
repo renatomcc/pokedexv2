@@ -535,20 +535,9 @@ const StyledPaperColumn = styled(StyledPaper)`
     font-weight: bold;
 `
 
-const appear = keyframes`
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity 1;
-  }
-`;
-
 const StyledStatPaper = styled(StyledPaper)`
     justify-content: space-between;
     border: 1px solid rgba(0,0,0,0.8);
-    animation: ${appear} 1s linear
 `
 
 const StyledPaperCircle = styled(StyledPaperColumn)`
