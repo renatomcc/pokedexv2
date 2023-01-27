@@ -3,7 +3,7 @@ This is the second version of my Pokedex, you can see the first one [here](https
 This one was created using React, Typescript, [Mantine Framework](https://mantine.dev), Styled Components and consuming the [PokéAPI](https://pokeapi.co)
 
 ## Link
-You can check the project [here](https://pokedex-renatomcc.netlify.app)
+You can check the project [here](https://pokedexv2-renatomcc.netlify.app)
 
 ## Features
 * All Pokemons with their Numbers, Names, Images and Types
