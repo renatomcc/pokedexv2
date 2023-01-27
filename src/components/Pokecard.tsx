@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import styled from '@emotion/styled';
-import { Card, Image, Badge, Button, Group, Grid, createPolymorphicComponent, ButtonProps, BadgeProps, Modal } from '@mantine/core';
+import { Card, Badge, Button, Group, createPolymorphicComponent, ButtonProps, Modal } from '@mantine/core';
 import { Pokemon } from '../App';
 import { FaInfoCircle } from 'react-icons/fa'
 import { BsHeart, BsFillHeartFill } from 'react-icons/bs'
@@ -17,7 +17,6 @@ export default function Pokecard(props: IPokemonType) {
     let secondType: string | null = props.props.types[1] ? props.props.types[1].type.name : null
     let length: number = props.props.types[1] ? 2 : 1
     let backGroundColor: string[] = [];
-
 
     backGroundColor = setCardBGColor(firstType, secondType, length)
 

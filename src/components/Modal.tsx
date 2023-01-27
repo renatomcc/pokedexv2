@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import styled from '@emotion/styled';
-import { Card, Image, Text, Badge, Button, Group, Grid, createPolymorphicComponent, Modal, ButtonProps, BadgeProps, Loader, Paper, keyframes } from '@mantine/core';
+import { Card, Text, Badge, Button, Group, Grid, createPolymorphicComponent, Modal, ButtonProps, BadgeProps, Loader} from '@mantine/core';
 import { BsArrowDown } from 'react-icons/bs'
 import { HiOutlineStar, HiStar } from 'react-icons/hi'
 import { TbGenderMale, TbGenderFemale, TbBeach, TbBeachOff, TbMountain } from 'react-icons/tb'
@@ -10,8 +10,7 @@ import { GiTennisBall } from 'react-icons/gi'
 import { CiMountain1 } from 'react-icons/ci'
 import { GiRollingEnergy } from 'react-icons/gi'
 import { setStatColor, setTextColor, setTypeColor } from '../utils/setColors'
-import React from 'react';
-import { LazyLoadImage, trackWindowScroll } from 'react-lazy-load-image-component'
+import { LazyLoadImage } from 'react-lazy-load-image-component'
 import 'react-lazy-load-image-component/src/effects/blur.css';
 import axios from 'axios';
 
@@ -594,12 +593,12 @@ interface Poke {
     entry: string,
     title: string,
     habitat: string,
+    category: string,
+    shape: string,
     gender_rate_male: string,
     gender_rate_female: string,
-    genderless: boolean,
-    category: string,
-    evolutionChain: any[],
-    shape: string,
+    genderless: boolean,    
+    evolutionChain: any[],    
     mega: string | undefined,
     megaShiny: string | undefined,
     alola: string | undefined,
